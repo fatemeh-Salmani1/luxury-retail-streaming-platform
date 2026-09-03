@@ -1,0 +1,35 @@
+# Python
+.venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.ruff_cache/
+
+# Environment and secrets
+.env
+*.pem
+*.key
+
+# Local data
+data/raw/*
+data/processed/*
+
+# Preserve empty data directories
+!data/raw/.gitkeep
+!data/processed/.gitkeep
+
+# Spark
+spark-warehouse/
+metastore_db/
+checkpoints/
+derby.log
+
+# Kafka
+kafka-data/
+
+# macOS
+.DS_Store
+
+# IDE
+.vscode/
+.idea/
