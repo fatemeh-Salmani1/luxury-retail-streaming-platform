@@ -8,6 +8,7 @@ dependencies = [
     "confluent-kafka>=2.15.0",
     "faker>=40.38.0",
     "pydantic>=2.13.5",
+    "pyspark==4.2.0",
 ]
 
 [dependency-groups]

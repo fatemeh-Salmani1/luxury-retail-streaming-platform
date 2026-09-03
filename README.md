@@ -16,15 +16,21 @@ The platform generates product views, cart activity and purchase events, validat
 ## Current architecture
 
 ```text
-Customer journey generator
+Python event generator
         ↓
-Pydantic event validation
+Pydantic validation
         ↓
-Python Kafka producer
+Kafka producer
         ↓
-Kafka topic: luxury-retail-events
+Kafka topic with three partitions
         ↓
-Spark Structured Streaming (next stage)
+Spark Structured Streaming
+        ↓
+Bronze: raw Kafka events
+        ↓
+Silver: validated and deduplicated events
+        ↓
+Gold: funnel, product and country metrics
 ```
 
 ## Implemented
@@ -68,4 +74,4 @@ uv run python -m src.producer.kafka_producer --journeys 5 --delay 0.5
 
 ## Project status
 
-In development. The next stage adds Spark Structured Streaming as the Kafka consumer.
+The local Kafka and Spark medallion pipeline is operational. Next steps include automated pipeline tests, historical dataset integration, orchestration and dashboard development.
