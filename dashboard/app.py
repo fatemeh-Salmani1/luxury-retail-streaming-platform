@@ -90,7 +90,7 @@ with left_column:
     figure.update_layout(
         showlegend=False,
         height=380,
-        margin=dict(l=20, r=20, t=20, b=20),
+        margin={"l": 20, "r": 20, "t": 20, "b": 20},
         )
     st.plotly_chart(figure, width="stretch")
 
