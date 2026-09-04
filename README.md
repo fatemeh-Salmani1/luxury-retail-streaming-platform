@@ -266,21 +266,13 @@ The test suite validates:
 
 GitHub Actions automatically runs Ruff and all nine tests after every push and pull request to `main`.
 
-## Data Engineering concepts demonstrated
+## Analytics Dashboard
 
-- Event-driven architecture
-- Kafka brokers, topics, partitions, offsets and message keys
-- Idempotent event production
-- Spark batch processing
-- Spark Structured Streaming
-- Micro-batch processing
-- Explicit schema enforcement
-- Broadcast joins
-- Parquet optimization
-- Checkpoint-based recovery
-- Event-time watermarks
-- Stateful deduplication
-- Bronze–Silver–Gold architecture
-- Data-quality investigation
-- Automated testing and continuous integration
+The Streamlit dashboard presents customer-funnel performance, conversion rates, product categories, and anonymized price-segment insights.
+
+![Dashboard overview](dashboard/Retail-dashboard1.png)
+
+![Category performance](dashboard/Retail-dashboard2.png)
+
+![Price-segment analysis](dashboard/Retail-dashboard3.png)
 
