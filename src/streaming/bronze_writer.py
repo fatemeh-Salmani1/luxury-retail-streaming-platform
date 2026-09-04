@@ -1,10 +1,32 @@
+import argparse
+
 from pyspark.sql import SparkSession
 from pyspark.sql.functions import col, current_timestamp, to_date
 
-KAFKA_BOOTSTRAP_SERVERS = "localhost:9092"
-KAFKA_TOPIC = "luxury-retail-events"
-BRONZE_PATH = "data/processed/bronze/retail_events"
-CHECKPOINT_PATH = "checkpoints/bronze-retail-events"
+DEFAULT_BOOTSTRAP_SERVERS = "localhost:9092"
+DEFAULT_TOPIC = "luxury-retail-events"
+DEFAULT_OUTPUT_PATH = "data/processed/bronze/retail_events"
+DEFAULT_CHECKPOINT_PATH = "checkpoints/bronze-retail-events"
+
+
+def parse_arguments() -> argparse.Namespace:
+    parser = argparse.ArgumentParser(
+        description="Persist raw Kafka events to a Bronze Parquet layer."
+    )
+    parser.add_argument(
+        "--bootstrap-servers",
+        default=DEFAULT_BOOTSTRAP_SERVERS,
+    )
+    parser.add_argument("--topic", default=DEFAULT_TOPIC)
+    parser.add_argument(
+        "--output-path",
+        default=DEFAULT_OUTPUT_PATH,
+    )
+    parser.add_argument(
+        "--checkpoint-path",
+        default=DEFAULT_CHECKPOINT_PATH,
+    )
+    return parser.parse_args()
 
 
 def create_spark_session() -> SparkSession:
@@ -21,13 +43,18 @@ def create_spark_session() -> SparkSession:
 
 
 def main() -> None:
+    arguments = parse_arguments()
+
     spark = create_spark_session()
     spark.sparkContext.setLogLevel("WARN")
 
     kafka_stream = (
         spark.readStream.format("kafka")
-        .option("kafka.bootstrap.servers", KAFKA_BOOTSTRAP_SERVERS)
-        .option("subscribe", KAFKA_TOPIC)
+        .option(
+            "kafka.bootstrap.servers",
+            arguments.bootstrap_servers,
+        )
+        .option("subscribe", arguments.topic)
         .option("startingOffsets", "earliest")
         .load()
     )
@@ -48,14 +75,18 @@ def main() -> None:
     query = (
         bronze_events.writeStream.format("parquet")
         .outputMode("append")
-        .option("path", BRONZE_PATH)
-        .option("checkpointLocation", CHECKPOINT_PATH)
+        .option("path", arguments.output_path)
+        .option(
+            "checkpointLocation",
+            arguments.checkpoint_path,
+        )
         .partitionBy("ingestion_date")
         .trigger(processingTime="5 seconds")
         .start()
     )
 
-    print(f"Writing raw Kafka events to {BRONZE_PATH}")
+    print(f"Streaming {arguments.topic} to {arguments.output_path}")
+
     query.awaitTermination()
 
 

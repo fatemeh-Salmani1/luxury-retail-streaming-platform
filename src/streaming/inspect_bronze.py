@@ -1,10 +1,24 @@
+import argparse
+
 from pyspark.sql import SparkSession
 from pyspark.sql import functions as F
 
-BRONZE_PATH = "data/processed/bronze/retail_events"
+DEFAULT_BRONZE_PATH = "data/processed/bronze/retail_events"
+
+
+def parse_arguments() -> argparse.Namespace:
+    parser = argparse.ArgumentParser(description="Inspect a Bronze Parquet dataset.")
+    parser.add_argument(
+        "--path",
+        default=DEFAULT_BRONZE_PATH,
+        help="Path to the Bronze dataset.",
+    )
+    return parser.parse_args()
 
 
 def main() -> None:
+    arguments = parse_arguments()
+
     spark = (
         SparkSession.builder.master("local[*]")
         .appName("InspectLuxuryRetailBronze")
@@ -13,12 +27,16 @@ def main() -> None:
     )
     spark.sparkContext.setLogLevel("WARN")
 
-    bronze = spark.read.parquet(BRONZE_PATH)
+    bronze = spark.read.parquet(arguments.path)
 
     print("\nBronze schema:")
     bronze.printSchema()
 
-    print(f"\nTotal Bronze events: {bronze.count()}")
+    print("\nBronze metrics:")
+    bronze.agg(
+        F.count("*").alias("total_events"),
+        F.countDistinct("kafka_key").alias("unique_sessions"),
+    ).show()
 
     print("\nOffsets by Kafka partition:")
     bronze.groupBy("kafka_partition").agg(
@@ -26,18 +44,6 @@ def main() -> None:
         F.min("kafka_offset").alias("first_offset"),
         F.max("kafka_offset").alias("last_offset"),
     ).orderBy("kafka_partition").show()
-
-    print("\nSample records:")
-    bronze.select(
-        "kafka_partition",
-        "kafka_offset",
-        "kafka_key",
-        "kafka_timestamp",
-        "ingestion_date",
-    ).orderBy(
-        "kafka_partition",
-        "kafka_offset",
-    ).show(10, truncate=False)
 
     spark.stop()
 
